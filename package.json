@@ -1,0 +1,20 @@
+{
+  "name": "ijks",
+  "version": "1.0.0",
+  "description": "Yet another JS quantum computing math library",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest || exit 0"
+  },
+  "keywords": [
+    "quantum",
+    "complex",
+    "math",
+    "imaginary"
+  ],
+  "author": "Tripp Lamb",
+  "license": "MIT",
+  "dependencies": {
+    "jest": "^26.6.3"
+  }
+}
