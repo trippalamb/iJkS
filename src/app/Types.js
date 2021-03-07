@@ -1,4 +1,4 @@
-class _Number{
+﻿class _Number{
     add(x) {
         try{
             return this["add_" + x.constructor.name](x);
@@ -257,19 +257,117 @@ class Complex extends _Number{
         return new Complex(r, i);
     }
 
-    ///Modulus///
+    ///POWER///
+
+    power_Real(r) {
+        return this.toPolar()
+            .power_Real(r)
+            .toCartesian();
+    }
+
+    ///ROOT///
+
+    root_Real(r) {
+        return this.toPolar()
+            .root_Real(r)
+            .toCartesian();
+    }
+
+    ///MODULUS///
 
     modulus() {
         return new Real(Math.abs(Math.sqrt(this.r * this.r + this.i * this.i)));
     }
 
-    ///Conjugate///
+    ///CONJUGATE///
 
     conjugate() {
         return new Complex(this.r, -this.i);
     }
 
+    ///TO POLAR///
+    toPolar() {
+        return new ComplexPolar(
+            Math.pow(this.r * this.r + this.i * this.i, 0.5),
+            Math.atan2(this.i, this.r)
+        );
 
+    }
+
+}
+
+class ComplexPolar extends _Number{
+    constructor(ρ, θ) {
+        super();
+        this.ρ = ρ;
+        this.θ = θ % (2 * Math.PI);
+        if (this.θ < 0) { this.θ += 2 * Math.PI;}
+    }
+
+    ///MULTIPLY///
+    mulitply_Complex(c) {
+        return this.multiply(c.toPolar());
+    }
+
+    multiply_ComplexPolar(cp) {
+        return new ComplexPolar(this.ρ * cp.ρ, this.θ + cp.θ);
+    }
+
+    ///DIVIDE///
+    divide_Complex(c) {
+        return this.divide(c.toPolar());
+    }
+
+    divide_ComplexPolar(cp) {
+        return new ComplexPolar(this.ρ / cp.ρ, this.θ - cp.θ);
+    }
+
+
+    ///POWER///
+    power_Real(r) {
+        
+        if (r >= 1) {
+            return [new ComplexPolar(
+                Math.pow(this.ρ, r),
+                r * this.θ
+            )];
+        }
+        else {
+            let n = 1.0 / r;
+            if (Number.isInteger(n)) {
+                return findMultipleRoots(this.ρ, this.θ, n);
+            }
+            else {
+                throw Error("Support for non-integer roots is not yet supported.");
+            }
+        }
+
+        function findMultipleRoots(ρ_in, θ, n) {
+            let results = [];
+            let ρ = Math.pow(ρ_in);
+            let twoPi = Math.PI * 2.0;
+            for (let k = 0; k < n; k++) {
+                results.push(new ComplexPolar(
+                    ρ,
+                    1.0 / n * (θ + k * twoPi)
+                ));
+            }
+            return results;
+        }
+    }
+
+    ///ROOT///
+    root_Real(r) {
+        return this.power_Real(1.0 / r);
+    }
+
+    ///TO CARTERSIAN///
+    toCartesian() {
+        return new Complex(
+            this.ρ * Math.cos(this.θ),
+            this.ρ * Math.sin(this.θ)
+        );
+    }
 }
 
 class Vector{
@@ -402,6 +500,7 @@ module.exports = {
     Real: Real,
     Imaginary: Imaginary,
     Complex: Complex,
+    ComplexPolar: ComplexPolar,
     Vector: Vector
 };
 
