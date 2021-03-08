@@ -371,87 +371,167 @@ class ComplexPolar extends _Number{
 }
 
 class Vector{
-    constructor(v){
+    constructor(v, isColumn){
 
         this.v = [];
+        this.isColumn = (typeof(isColumn) === "undefined") ? true : isColumn;
 
-        v.forEach((a)=>{
-            switch (a.constructor.name) {
-                case ("Real"):
-                case ("Imaginary"):
-                case ("Complex"):
-                    return this.v.push(a);
-                    break;
-                default:
-                    throw new Error("Vector must be composed of numbers. [" + a + "]");
+        v.forEach((a) => {
+            try {
+                this["push_" + a.constructor.name](a);
             }
+            catch (e) {
+                throw new Error("Number type is not yet supported in the Vector class. [" + a + "]");
+            }
+            
         });
     }
 
-    compileToJS(){
-        throw new Error("not implemented yet");
+    ///PUSH///
+    push_Number(n) {
+        this.v.push(new Real(n));
     }
 
-    add(x) {
-        switch (x.constructor.name) {
-            case ("Real"):
-            case ("Imaginary"):
-            case ("Complex"):
-                return new Vector(this.v.map((v)=> v.add(x)));
-                break;
-            case ("Vector"):
-                return new Vector(this.v.map((v, i)=> v.add(x[i])));
-                break;
-            default:
-                throw new Error("add operation is not supported for these two types");
-        }
+    push_Real(r) {
+        this.v.push(new Real(r.r));
     }
 
-    subtract(x) {
-        switch (x.constructor.name) {
-            case ("Real"):
-            case ("Imaginary"):
-            case ("Complex"):
-                return new Vector(this.v.map((v)=> v.subtract(x)));
-                break;
-            case ("Vector"):
-                return new Vector(this.v.map((v, i)=> v.subtract(x[i])));
-                break;
-            default:
-                throw new Error("add operation is not supported for these two types");
-        }
-    }
-
-    multiply(x) {
-        switch (x.constructor.name) {
-            case ("Real"):
-            case ("Imaginary"):
-            case ("Complex"):
-                return new Vector(this.v.map((v)=> v.multiply(x)));
-                break;
-            case ("Vector"):
-                return new Vector(this.v.map((v, i)=> v.multiply(x[i])));
-                break;
-            default:
-                throw new Error("add operation is not supported for these two types");
-        }
-    }
-
-    divide(x) {
-        switch (x.constructor.name) {
-            case ("Real"):
-            case ("Imaginary"):
-            case ("Complex"):
-                return new Vector(this.v.map((v)=> v.divide(x)));
-                break;
-            case ("Vector"):
-                return new Vector(this.v.map((v, i)=> v.divide(x[i])));
-                break;
-            default:
-                throw new Error("add operation is not supported for these two types");
-        }
+    push_Imaginary(i) {
+        this.v.push(new Imaginary(i.i));
     }
     
+    push_Complex(c) {
+        this.v.push(new Complex(c.r, c.i));
+    }
+
+    ///ADD///
+
+    add(x) {
+        try {
+            this["add_" + x.constructor.name](x);
+        }
+        catch (e) {
+            throw new Error("Number type is not yet supported for addition by the Vector class. [" + a + "]");
+        }
+    }
+
+    add_Scalar(x) {
+        return new Vector(this.v.map((v) => v.add(x)));
+    }
+
+    add_Real(x) {
+        return this.add_Scalar(x);
+    }
+
+    add_Imaginary(x) {
+        return this.add_Scalar(x);
+    }
+
+    add_Complex(x) {
+        return this.add_Scalar(x);
+    }
+
+    add_Vector(x) {
+        return new Vector(this.v.map((v, i) => v.add(x[i])));
+    }
+
+    ///SUBTRACT///
+    subtract(x) {
+        try {
+            this["subtract_" + x.constructor.name](x);
+        }
+        catch (e) {
+            throw new Error("Number type is not yet supported for subtraction by the Vector class. [" + a + "]");
+        }
+    }
+
+    subtract_Scalar(x) {
+        return new Vector(this.v.map((v) => v.subtract(x)));
+    }
+
+    subtract_Real(x) {
+        return this.subtract_Scalar(x);
+    }
+
+    subtract_Imaginary(x) {
+        return this.subtract_Scalar(x);
+    }
+
+    subtract_Complex(x) {
+        return this.subtract_Scalar(x);
+    }
+
+    subtract_Vector(x) {
+        return new Vector(this.v.map((v, i) => v.subtract(x[i])));
+    }
+
+    ///MULTIPLY
+
+    multiply(x) {
+        try {
+            this["multiply_" + x.constructor.name](x);
+        }
+        catch (e) {
+            throw new Error("Number type is not yet supported for multiplication by the Vector class. [" + a + "]");
+        }
+    }
+
+    multiply_Scalar(x) {
+        return new Vector(this.v.map((v) => v.multiply(x)));
+    }
+
+    multiply_Real(x) {
+        return this.multiply_Scalar(x);
+    }
+
+    multiply_Imaginary(x) {
+        return this.multiply_Scalar(x);
+    }
+
+    multiply_Complex(x) {
+        return this.multiply_Scalar(x);
+    }
+
+    multiply_Vector(x) {
+        return new Vector(this.v.map((v, i) => v.multiply(x[i])));
+    }
+
+    ///DIVIDE///
+
+    divide(x) {
+        try {
+            this["divide_" + x.constructor.name](x);
+        }
+        catch (e) {
+            throw new Error("Number type is not yet supported for division by the Vector class. [" + a + "]");
+        }
+    }
+
+    divide_Scalar(x) {
+        return new Vector(this.v.map((v) => v.divide(x)));
+    }
+
+    divide_Real(x) {
+        return this.divide_Scalar(x);
+    }
+
+    divide_Imaginary(x) {
+        return this.divide_Scalar(x);
+    }
+
+    divide_Complex(x) {
+        return this.divide_Scalar(x);
+    }
+
+    divide_Vector(x) {
+        return new Vector(this.v.map((v, i) => v.divide(x[i])));
+    }
+    
+    ///Compilation///
+
+    compileToJS() {
+        throw new Error("not implemented yet");
+    }
 
 }
 
@@ -497,10 +577,11 @@ class Boolean {
 }
 
 module.exports = {
-    Real: Real,
-    Imaginary: Imaginary,
+    Boolean: Boolean,
     Complex: Complex,
     ComplexPolar: ComplexPolar,
+    Imaginary: Imaginary,
+    Real: Real,
     Vector: Vector
 };
 
