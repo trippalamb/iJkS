@@ -61,6 +61,10 @@ class Real extends _Number{
         return new Complex(this.r + x.r, x.i);
     }
 
+    add_Vector(x) {
+        return new Vector(x.v.map(v => this.add(v)));
+    }
+
     ///SUBTRACT///
     subtract_Real(x) {
         return new Real(this.r - x.r);
@@ -74,6 +78,10 @@ class Real extends _Number{
         return new Complex(this.r - x.r, x.i);
     }
 
+    subtract_Vector(x) {
+        return new Vector(x.v.map(v => this.subtract(v)));
+    }
+
     ///MULTIPLY///
     multiply_Real(x) {
         return new Real(this.r * x.r);
@@ -85,6 +93,10 @@ class Real extends _Number{
 
     multiply_Complex(x) {
         return new Complex(this.r * x.r, this.r * x.i);
+    }
+
+    multiply_Vector(x) {
+        return new Vector(x.v.map(v => this.multiply(v)));
     }
 
     ///DIVIDE///
@@ -101,6 +113,10 @@ class Real extends _Number{
         var r = (this.r * x.r) / d;
         var i = -(this.r * x.i) / d;
         return new Complex(r, i);
+    }
+
+    divide_Vector(x) {
+        return new Vector(x.v.map(v => this.divide(v)));
     }
 
     /////////COMPARISON/////////
@@ -144,6 +160,10 @@ class Imaginary extends _Number {
         return new Complex(x.r, this.i + x.i);
     }
 
+    add_Vector(x) {
+        return new Vector(x.v.map(v => this.add(v)));
+    }
+
     ///SUBTRACT///
     subtract_Real(x) {
         return new Complex(-x.r, this.i);
@@ -157,6 +177,10 @@ class Imaginary extends _Number {
         return new Complex(-x.r, this.i - x.i);
     }
 
+    subtract_Vector(x) {
+        return new Vector(x.v.map(v => this.subtract(v)));
+    }
+
     ///MULTIPLY///
     multiply_Real(x) {
         return new Imaginary(this.i * x.r);
@@ -168,6 +192,10 @@ class Imaginary extends _Number {
 
     multiply_Complex(x) {
         return new Complex(-this.i * x.i, this.i * x.r);
+    }
+
+    multiply_Vector(x) {
+        return new Vector(x.v.map(v => this.multiply(v)));
     }
 
     ///DIVIDE///
@@ -184,6 +212,10 @@ class Imaginary extends _Number {
         var r = (this.i * x.r) / d;
         var i = -(this.i * x.i) / d;
         return new Complex(r, i);
+    }
+
+    divide_Vector(x) {
+        return new Vector(x.v.map(v => this.divide(v)));
     }
 
 
@@ -215,6 +247,10 @@ class Complex extends _Number{
         return new Complex(this.r + x.r, this.i + x.i);
     }
 
+    add_Vector(x) {
+        return new Vector(x.v.map(v => this.add(v)));
+    }
+
     ///SUBTRACT///
     subtract_Real(x) {
         return new Complex(this.r - x.r, this.i);
@@ -228,6 +264,10 @@ class Complex extends _Number{
         return new Complex(this.r - x.r, this.i - x.i);
     }
 
+    subtract_Vector(x) {
+        return new Vector(x.v.map(v => this.subtract(v)));
+    }
+
     ///MULTIPLY///
     multiply_Real(x) {
         return new Complex(this.r * x.r, this.i * x.r);
@@ -239,6 +279,10 @@ class Complex extends _Number{
 
     multiply_Complex(x) {
         return new Complex(this.r * x.r - this.i * x.i, this.r * x.i + x.r * this.i);
+    }
+
+    multiply_Vector(x) {
+        return new Vector(x.v.map(v => this.multiply(v)));
     }
 
     ///DIVIDE///
@@ -255,6 +299,10 @@ class Complex extends _Number{
         var r = (this.r*x.r + this.i*x.i)/d;
         var i = (this.i*x.r - this.r*x.i)/d;
         return new Complex(r, i);
+    }
+
+    divide_Vector(x) {
+        return new Vector(x.v.map(v => this.divide(v)));
     }
 
     ///POWER///
@@ -407,11 +455,12 @@ class Vector{
     ///ADD///
 
     add(x) {
+        
         try {
-            this["add_" + x.constructor.name](x);
+            return this["add_" + x.constructor.name](x);
         }
         catch (e) {
-            throw new Error("Number type is not yet supported for addition by the Vector class. [" + a + "]");
+            throw new Error("Number type is not yet supported for addition by the Vector class. [" + x + "]");
         }
     }
 
@@ -432,16 +481,24 @@ class Vector{
     }
 
     add_Vector(x) {
-        return new Vector(this.v.map((v, i) => v.add(x[i])));
+        
+        if (this.v.length === x.v.length) {
+            //let y = this.v.map((v, i) => v.add(x.v[i]));
+            //console.log(JSON.stringify(y));
+            return new Vector(this.v.map((v, i) => v.add(x.v[i])));
+        }
+        else {
+            throw new Error("Vectors must be the same length to add.");
+        }
     }
 
     ///SUBTRACT///
     subtract(x) {
         try {
-            this["subtract_" + x.constructor.name](x);
+            return this["subtract_" + x.constructor.name](x);
         }
         catch (e) {
-            throw new Error("Number type is not yet supported for subtraction by the Vector class. [" + a + "]");
+            throw new Error("Number type is not yet supported for subtraction by the Vector class. [" + x + "]");
         }
     }
 
@@ -462,17 +519,22 @@ class Vector{
     }
 
     subtract_Vector(x) {
-        return new Vector(this.v.map((v, i) => v.subtract(x[i])));
+        if (this.v.length === x.v.length) {
+            return new Vector(this.v.map((v, i) => v.subtract(x.v[i])));
+        }
+        else {
+            throw new Error("Vectors must be the same length to subtract.");
+        }
     }
 
     ///MULTIPLY
 
     multiply(x) {
         try {
-            this["multiply_" + x.constructor.name](x);
+            return this["multiply_" + x.constructor.name](x);
         }
         catch (e) {
-            throw new Error("Number type is not yet supported for multiplication by the Vector class. [" + a + "]");
+            throw new Error("Number type is not yet supported for multiplication by the Vector class. [" + x + "]");
         }
     }
 
@@ -493,17 +555,22 @@ class Vector{
     }
 
     multiply_Vector(x) {
-        return new Vector(this.v.map((v, i) => v.multiply(x[i])));
+        if (this.v.length === x.v.length) {
+            return new Vector(this.v.map((v, i) => v.multiply(x.v[i])));
+        }
+        else {
+            throw new Error("Vectors must be the same length to multiply.");
+        }
     }
 
     ///DIVIDE///
 
     divide(x) {
         try {
-            this["divide_" + x.constructor.name](x);
+            return this["divide_" + x.constructor.name](x);
         }
         catch (e) {
-            throw new Error("Number type is not yet supported for division by the Vector class. [" + a + "]");
+            throw new Error("Number type is not yet supported for division by the Vector class. [" + x + "]");
         }
     }
 
@@ -524,15 +591,62 @@ class Vector{
     }
 
     divide_Vector(x) {
-        return new Vector(this.v.map((v, i) => v.divide(x[i])));
+        if (this.v.length === x.v.length) {
+            return new Vector(this.v.map((v, i) => v.divide(x.v[i])));
+        }
+        else {
+            throw new Error("Vectors must be the same length to divide.");
+        }
     }
     
+    inverse() {
+        return this.multiply(new Real(-1));
+    }
+
+    get(i) {
+        return this.v[i];
+    }
+
+    getSize() {
+        return this.v.length;
+    }
+
+    ///SET///
+    set(x) {
+        try {
+            this["set_" + a.constructor.name](x);
+        }
+        catch (e) {
+            throw new Error("Number type is not yet supported for setting in the Vector class. [" + x + "]");
+        }
+    }
+
+    set_Real(x) {
+        this.v[i] = new Real(x.r);
+    }
+
+    set_Imaginary(x) {
+        this.v[i] = new Imaginary(x.i);
+    }
+
+    set_Complex(x) {
+        this.v[i] = new Complex(x.r, x.i);
+    }
+
     ///Compilation///
 
     compileToJS() {
         throw new Error("not implemented yet");
     }
 
+}
+
+class Matrix {
+    constructor() {
+
+    }
+
+    //start by compying almost all code from vector
 }
 
 
