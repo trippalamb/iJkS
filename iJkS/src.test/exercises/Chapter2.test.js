@@ -24,7 +24,7 @@ test("Programming Drill 2.1.1 | Vector Addition", () => {
     ]);
 
     const V3 = V1.add(V2);
-    for (let i = 0; i < V1.getSize(); i++) {
+    for (let i = 1; i <= V1.getSize(); i++) {
         expect(V3.get(i).r).toBeCloseTo(correct.get(i).r, 12);
         expect(V3.get(i).i).toBeCloseTo(correct.get(i).i, 12);
     }
@@ -49,7 +49,7 @@ test("Programming Drill 2.1.1 | Vector Inversion", () => {
     ]);
 
     let Vi = V.inverse();
-    for (let i = 0; i < Vi.getSize(); i++) {
+    for (let i = 1; i <= Vi.getSize(); i++) {
         expect(Vi.get(i).r).toBeCloseTo(correct.get(i).r, 12);
         expect(Vi.get(i).i).toBeCloseTo(correct.get(i).i, 12);
     }
@@ -76,7 +76,7 @@ test("Programming Drill 2.1.1 | Scalar Multiply", () => {
 
     let Vc = V.multiply(c);
     let cV = c.multiply(V);
-    for (let i = 0; i < cV.getSize(); i++) {
+    for (let i = 1; i <= cV.getSize(); i++) {
         expect(Vc.get(i).r).toBeCloseTo(correct.get(i).r, 12);
         expect(Vc.get(i).i).toBeCloseTo(correct.get(i).i, 12);
         expect(cV.get(i).r).toBeCloseTo(correct.get(i).r, 12);

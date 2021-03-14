@@ -40,7 +40,18 @@
     <Content Include="src.test\exercises\Chapter2.test.js">
       <TestFramework>Jest</TestFramework>
     </Content>
-    <Content Include="src.test\type\Types.test.js" />
+    <Content Include="src.test\type\Complex.test.js">
+      <SubType>Code</SubType>
+      <TestFramework>Jest</TestFramework>
+    </Content>
+    <Content Include="src.test\type\Imaginary.test.js">
+      <SubType>Code</SubType>
+      <TestFramework>Jest</TestFramework>
+    </Content>
+    <Content Include="src.test\type\Real.test.js">
+      <SubType>Code</SubType>
+      <TestFramework>Jest</TestFramework>
+    </Content>
     <Content Include="src\app\Types.js" />
   </ItemGroup>
   <ItemGroup>

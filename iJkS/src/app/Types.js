@@ -1,11 +1,11 @@
-﻿class _Number{
+﻿class Scalar{
     constructor() {
         this.classification = "scalar";
     }
 
     add(x) {
         try{
-            return this["add_" + x.constructor.name](x);
+            return this["map_" + x.classification]("add", x);
         }
         catch (e){
             throw new Error("add operation is not supported for these two types");
@@ -14,7 +14,7 @@
 
     subtract(x) {
         try{
-            return this["subtract_" + x.constructor.name](x);
+            return this["map_" + x.classification]("subtract", x);
         }
         catch (e){
             throw new Error("subtract operation is not supported for these two types");
@@ -23,7 +23,7 @@
 
     multiply(x) {
         try{
-            return this["multiply_" + x.constructor.name](x);
+            return this["map_" + x.classification]("multiply", x);
         }
         catch (e){
             throw new Error("multiply operation is not supported for these two types");
@@ -32,11 +32,36 @@
 
     divide(x) {
         try{
-            return this["divide_" + x.constructor.name](x);
+            return this["map_" + x.classification]("divide", x);
         }
         catch (e){
             throw new Error("divide operation is not supported for these two types");
         }
+    }
+
+    map_scalar(op, x) {
+        return this[op + "_" + x.constructor.name](x);
+    }
+
+    map_vector(op, x) {
+        var results = [];
+        var size = x.getSize();
+        for (let i = 1; i <= size; i++) {
+            results[i] = this.map_scalar(op, x.getRef(i));
+        }
+        return new Vector(results, x.isColumn);
+    }
+
+    map_matrix(op, x) {
+        var results = [];
+        var size = x.getSize();
+        for (let i = 1; i <= size[0]; i++) {
+            results[i] = [];
+            for (let j = 1; j <= size[1]; j++) {
+                results[i][j] = this.map_scalar(op, x.getRef(i, j));
+            }
+        }
+        return new Matrix(results, null, true);
     }
 
     copy() {
@@ -44,7 +69,7 @@
     }
 }
 
-class Real extends _Number{
+class Real extends Scalar{
     constructor(r) {
         super();
         this.r = parseFloat(r);
@@ -56,6 +81,14 @@ class Real extends _Number{
 
     copy() {
         return new Real(this.r);
+    }
+
+    get() {
+        return this.r;
+    }
+
+    set(r) {
+        this.r = r;
     }
 
     /////////MATH/////////
@@ -73,10 +106,6 @@ class Real extends _Number{
         return new Complex(this.r + x.r, x.i);
     }
 
-    add_Vector(x) {
-        return new Vector(x.v.map(v => this.add(v)));
-    }
-
     ///SUBTRACT///
     subtract_Real(x) {
         return new Real(this.r - x.r);
@@ -87,11 +116,7 @@ class Real extends _Number{
     }
 
     subtract_Complex(x) {
-        return new Complex(this.r - x.r, x.i);
-    }
-
-    subtract_Vector(x) {
-        return new Vector(x.v.map(v => this.subtract(v)));
+        return new Complex(this.r - x.r, -x.i);
     }
 
     ///MULTIPLY///
@@ -107,17 +132,13 @@ class Real extends _Number{
         return new Complex(this.r * x.r, this.r * x.i);
     }
 
-    multiply_Vector(x) {
-        return new Vector(x.v.map(v => this.multiply(v)));
-    }
-
     ///DIVIDE///
     divide_Real(x) {
         return new Real(this.r / x.r);
     }
 
     divide_Imaginary(x) {
-        return new Imaginary(-this.r / x.i);
+        return new Imaginary(this.r / x.i);
     }
 
     divide_Complex(x) {
@@ -125,10 +146,6 @@ class Real extends _Number{
         var r = (this.r * x.r) / d;
         var i = -(this.r * x.i) / d;
         return new Complex(r, i);
-    }
-
-    divide_Vector(x) {
-        return new Vector(x.v.map(v => this.divide(v)));
     }
 
     /////////COMPARISON/////////
@@ -144,7 +161,7 @@ class Real extends _Number{
 
 }
 
-class Imaginary extends _Number {
+class Imaginary extends Scalar {
     constructor(i) {
         super();
         if (typeof (i.length) !== "undefined") {
@@ -161,6 +178,14 @@ class Imaginary extends _Number {
 
     copy() {
         return new Imaginary(this.i);
+    }
+
+    get() {
+        return this.i;
+    }
+
+    set(i) {
+        this.i = i;
     }
 
     ///ADD///
@@ -237,7 +262,7 @@ class Imaginary extends _Number {
 
 }
 
-class Complex extends _Number{
+class Complex extends Scalar{
 
     constructor(r, i) {
         super();
@@ -251,6 +276,15 @@ class Complex extends _Number{
 
     copy() {
         return new Complex(this.r, this.i);
+    }
+
+    get(x) {
+        return this[x];
+    }
+
+    set(r, i) {
+        this.r = r;
+        this.i = i;
     }
 
     ///ADD///
@@ -363,7 +397,7 @@ class Complex extends _Number{
 
 }
 
-class ComplexPolar extends _Number{
+class ComplexPolar extends Scalar{
     constructor(ρ, θ) {
         super();
         this.ρ = ρ;
@@ -442,11 +476,28 @@ class ComplexPolar extends _Number{
 }
 
 class Vector{
-    constructor(v, isColumn){
+    constructor(x, isColumn, n){
 
-        if (v.constructor.name === "Vector") { this.construct_fromVector(); }
-        else { this.construct_fromArray(v, isColumn); }
+        if (x.constructor.name === "Number" || x.classfication === "scalar") { this.construct_fromScalar(x, isColumn, n); }
+        else if (x.constructor.name === "Vector") { this.construct_fromVector(x); }
+        else if (x.constructor.name === "Array") { this.construct_fromArray(x, isColumn); }
+        else { throw new Error(`${x.constructor.name} is not a valid object type to construct a tensor.`); }
         
+    }
+
+    construct_fromScalar(s, isColumn, n) {
+        this.classification = "vector";
+        this.isColumn = (typeof (isColumn) === "undefined") ? true : isColumn;
+        this.vals = [];
+
+        for (let i = 0; i < n; i++) {
+            if (s.constructor.name === "Number") {
+                this.vals[i][j] = new Real(s);
+            }
+            else {
+                this.vals[i][j] = s.copy();
+            }
+        }
     }
 
     construct_fromVector(v) {
@@ -492,52 +543,48 @@ class Vector{
         this.vals.push(new Complex(c.r, c.i));
     }
 
+
+    map_scalar(op, x) {
+        return new Vector(this.vals.map((v) => v[op](x)));
+    }
+
+    map_vector(op, x) {
+        if (this.isColumn === x.isColumn) {
+            var results = [];
+            var size = x.getSize();
+            for (let i = 1; i <= size; i++) {
+                results[i] = this.get(i).map_scalar(op, x.getRef(i));
+            }
+            return new Vector(results, this.isColumn, true);
+        }
+        else {
+            throw new Error("Cannot add a row vector and a column vector")
+        }
+    }
+
+    map_matrix(op, x) {
+        throw new Error("not implemented");
+    }
+
     ///ADD///
 
     add(x) {
         
         try {
-            return this["add_" + x.classification](x);
+            return this["map_" + x.classification]("add", x);
         }
         catch (e) {
             throw new Error("Number type is not yet supported for addition by the Vector class. [" + x + "]");
         }
     }
 
-    add_scalar(x) {
-        return new Vector(this.vals.map((v) => v.add(x)));
-    }
-
-    add_vector(x) {
-        
-        if (this.vals.length === x.v.length) {
-            return new Vector(this.vals.map((v, i) => v.add(x.v[i])));
-        }
-        else {
-            throw new Error("Vectors must be the same length to add.");
-        }
-    }
-
     ///SUBTRACT///
     subtract(x) {
         try {
-            return this["subtract_" + x.classification](x);
+            return this["map_" + x.classification]("subtract", x);
         }
         catch (e) {
             throw new Error("Number type is not yet supported for subtraction by the Vector class. [" + x + "]");
-        }
-    }
-
-    subtract_scalar(x) {
-        return new Vector(this.vals.map((v) => v.subtract(x)));
-    }
-
-    subtract_vector(x) {
-        if (this.vals.length === x.v.length) {
-            return new Vector(this.vals.map((v, i) => v.subtract(x.v[i])));
-        }
-        else {
-            throw new Error("Vectors must be the same length to subtract.");
         }
     }
 
@@ -545,23 +592,10 @@ class Vector{
 
     multiply(x) {
         try {
-            return this["multiply_" + x.classification](x);
+            return this["map_" + x.classification]("multiply", x);
         }
         catch (e) {
             throw new Error("Number type is not yet supported for multiplication by the Vector class. [" + x + "]");
-        }
-    }
-
-    multiply_scalar(x) {
-        return new Vector(this.vals.map((v) => v.multiply(x)));
-    }
-
-    multiply_vector(x) {
-        if (this.vals.length === x.v.length) {
-            return new Vector(this.vals.map((v, i) => v.multiply(x.v[i])));
-        }
-        else {
-            throw new Error("Vectors must be the same length to multiply.");
         }
     }
 
@@ -569,23 +603,10 @@ class Vector{
 
     divide(x) {
         try {
-            return this["divide_" + x.classfication](x);
+            return this["map_" + x.classification]("divide", x);
         }
         catch (e) {
             throw new Error("Number type is not yet supported for division by the Vector class. [" + x + "]");
-        }
-    }
-
-    divide_scalar(x) {
-        return new Vector(this.vals.map((v) => v.divide(x)));
-    }
-
-    divide_vector(x) {
-        if (this.vals.length === x.vals.length) {
-            return new Vector(this.vals.map((v, i) => v.divide(x.v[i])));
-        }
-        else {
-            throw new Error("Vectors must be the same length to divide.");
         }
     }
     
