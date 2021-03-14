@@ -1,5 +1,4 @@
-﻿//const Types = require("../../src/app/Types.js");
-const { Complex, ComplexPolar, Real, Imaginary, Vector } = require("../../src/app/Types.js");
+﻿const { Complex, ComplexPolar, Real, Imaginary, Vector } = require("../../src/app/Types.js");
 
 test("Programming Drill 1.1.1 | Addition", () => {
 

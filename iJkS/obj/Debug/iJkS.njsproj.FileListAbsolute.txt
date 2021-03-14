@@ -1,2 +1,3 @@
 C:\Users\x51\Projects\iJkS\iJkS\obj\Debug\iJkS.njsproj.CoreCompileInputs.cache
 C:\Users\x51\Projects\iJkS\iJkS\bin\Microsoft.NodejsTools.WebRole.dll
+C:\Users\x51\Projects\iJkS\iJkS\obj\Debug\iJkS.njsprojAssemblyReference.cache

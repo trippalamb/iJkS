@@ -1,4 +1,8 @@
 ﻿class _Number{
+    constructor() {
+        this.classification = "scalar";
+    }
+
     add(x) {
         try{
             return this["add_" + x.constructor.name](x);
@@ -34,6 +38,10 @@
             throw new Error("divide operation is not supported for these two types");
         }
     }
+
+    copy() {
+        throw new Error("child must implement an override of this method");
+    }
 }
 
 class Real extends _Number{
@@ -44,6 +52,10 @@ class Real extends _Number{
 
     compileToJS() {
         return this.r;
+    }
+
+    copy() {
+        return new Real(this.r);
     }
 
     /////////MATH/////////
@@ -147,6 +159,10 @@ class Imaginary extends _Number {
         throw new Error("not implemented yet");
     }
 
+    copy() {
+        return new Imaginary(this.i);
+    }
+
     ///ADD///
     add_Real(x) {
         return new Complex(x.r, this.i);
@@ -233,6 +249,9 @@ class Complex extends _Number{
         throw new Error("not implemented yet");
     }
 
+    copy() {
+        return new Complex(this.r, this.i);
+    }
 
     ///ADD///
     add_Real(x) {
@@ -352,6 +371,10 @@ class ComplexPolar extends _Number{
         if (this.θ < 0) { this.θ += 2 * Math.PI;}
     }
 
+    copy() {
+        return new ComplexPolar(this.ρ, this.θ);
+    }
+
     ///MULTIPLY///
     mulitply_Complex(c) {
         return this.multiply(c.toPolar());
@@ -421,9 +444,27 @@ class ComplexPolar extends _Number{
 class Vector{
     constructor(v, isColumn){
 
-        this.v = [];
-        this.isColumn = (typeof(isColumn) === "undefined") ? true : isColumn;
+        if (v.constructor.name === "Vector") { this.construct_fromVector(); }
+        else { this.construct_fromArray(v, isColumn); }
+        
+    }
 
+    construct_fromVector(v) {
+        let nv = JSON.parse(JSON.stringify(v));
+        for (const key in nv) {
+            this[key] = nv[key];
+        }
+    }
+
+    construct_fromArray(v, isColumn) {
+        this.classification = "vector";
+        this.vals = [];
+        this.isColumn = (typeof (isColumn) === "undefined") ? true : isColumn;
+        this.push(v);
+    }
+
+    ///PUSH///
+    push(v) {
         v.forEach((a) => {
             try {
                 this["push_" + a.constructor.name](a);
@@ -431,25 +472,24 @@ class Vector{
             catch (e) {
                 throw new Error("Number type is not yet supported in the Vector class. [" + a + "]");
             }
-            
+
         });
     }
 
-    ///PUSH///
     push_Number(n) {
-        this.v.push(new Real(n));
+        this.vals.push(new Real(n));
     }
 
     push_Real(r) {
-        this.v.push(new Real(r.r));
+        this.vals.push(new Real(r.r));
     }
 
     push_Imaginary(i) {
-        this.v.push(new Imaginary(i.i));
+        this.vals.push(new Imaginary(i.i));
     }
     
     push_Complex(c) {
-        this.v.push(new Complex(c.r, c.i));
+        this.vals.push(new Complex(c.r, c.i));
     }
 
     ///ADD///
@@ -457,35 +497,21 @@ class Vector{
     add(x) {
         
         try {
-            return this["add_" + x.constructor.name](x);
+            return this["add_" + x.classification](x);
         }
         catch (e) {
             throw new Error("Number type is not yet supported for addition by the Vector class. [" + x + "]");
         }
     }
 
-    add_Scalar(x) {
-        return new Vector(this.v.map((v) => v.add(x)));
+    add_scalar(x) {
+        return new Vector(this.vals.map((v) => v.add(x)));
     }
 
-    add_Real(x) {
-        return this.add_Scalar(x);
-    }
-
-    add_Imaginary(x) {
-        return this.add_Scalar(x);
-    }
-
-    add_Complex(x) {
-        return this.add_Scalar(x);
-    }
-
-    add_Vector(x) {
+    add_vector(x) {
         
-        if (this.v.length === x.v.length) {
-            //let y = this.v.map((v, i) => v.add(x.v[i]));
-            //console.log(JSON.stringify(y));
-            return new Vector(this.v.map((v, i) => v.add(x.v[i])));
+        if (this.vals.length === x.v.length) {
+            return new Vector(this.vals.map((v, i) => v.add(x.v[i])));
         }
         else {
             throw new Error("Vectors must be the same length to add.");
@@ -495,32 +521,20 @@ class Vector{
     ///SUBTRACT///
     subtract(x) {
         try {
-            return this["subtract_" + x.constructor.name](x);
+            return this["subtract_" + x.classification](x);
         }
         catch (e) {
             throw new Error("Number type is not yet supported for subtraction by the Vector class. [" + x + "]");
         }
     }
 
-    subtract_Scalar(x) {
-        return new Vector(this.v.map((v) => v.subtract(x)));
+    subtract_scalar(x) {
+        return new Vector(this.vals.map((v) => v.subtract(x)));
     }
 
-    subtract_Real(x) {
-        return this.subtract_Scalar(x);
-    }
-
-    subtract_Imaginary(x) {
-        return this.subtract_Scalar(x);
-    }
-
-    subtract_Complex(x) {
-        return this.subtract_Scalar(x);
-    }
-
-    subtract_Vector(x) {
-        if (this.v.length === x.v.length) {
-            return new Vector(this.v.map((v, i) => v.subtract(x.v[i])));
+    subtract_vector(x) {
+        if (this.vals.length === x.v.length) {
+            return new Vector(this.vals.map((v, i) => v.subtract(x.v[i])));
         }
         else {
             throw new Error("Vectors must be the same length to subtract.");
@@ -531,32 +545,20 @@ class Vector{
 
     multiply(x) {
         try {
-            return this["multiply_" + x.constructor.name](x);
+            return this["multiply_" + x.classification](x);
         }
         catch (e) {
             throw new Error("Number type is not yet supported for multiplication by the Vector class. [" + x + "]");
         }
     }
 
-    multiply_Scalar(x) {
-        return new Vector(this.v.map((v) => v.multiply(x)));
+    multiply_scalar(x) {
+        return new Vector(this.vals.map((v) => v.multiply(x)));
     }
 
-    multiply_Real(x) {
-        return this.multiply_Scalar(x);
-    }
-
-    multiply_Imaginary(x) {
-        return this.multiply_Scalar(x);
-    }
-
-    multiply_Complex(x) {
-        return this.multiply_Scalar(x);
-    }
-
-    multiply_Vector(x) {
-        if (this.v.length === x.v.length) {
-            return new Vector(this.v.map((v, i) => v.multiply(x.v[i])));
+    multiply_vector(x) {
+        if (this.vals.length === x.v.length) {
+            return new Vector(this.vals.map((v, i) => v.multiply(x.v[i])));
         }
         else {
             throw new Error("Vectors must be the same length to multiply.");
@@ -567,32 +569,20 @@ class Vector{
 
     divide(x) {
         try {
-            return this["divide_" + x.constructor.name](x);
+            return this["divide_" + x.classfication](x);
         }
         catch (e) {
             throw new Error("Number type is not yet supported for division by the Vector class. [" + x + "]");
         }
     }
 
-    divide_Scalar(x) {
-        return new Vector(this.v.map((v) => v.divide(x)));
+    divide_scalar(x) {
+        return new Vector(this.vals.map((v) => v.divide(x)));
     }
 
-    divide_Real(x) {
-        return this.divide_Scalar(x);
-    }
-
-    divide_Imaginary(x) {
-        return this.divide_Scalar(x);
-    }
-
-    divide_Complex(x) {
-        return this.divide_Scalar(x);
-    }
-
-    divide_Vector(x) {
-        if (this.v.length === x.v.length) {
-            return new Vector(this.v.map((v, i) => v.divide(x.v[i])));
+    divide_vector(x) {
+        if (this.vals.length === x.vals.length) {
+            return new Vector(this.vals.map((v, i) => v.divide(x.v[i])));
         }
         else {
             throw new Error("Vectors must be the same length to divide.");
@@ -604,33 +594,25 @@ class Vector{
     }
 
     get(i) {
-        return this.v[i];
+        return this.vals[i - 1].copy();
+    }
+
+    getRef(i) {
+        return this.vals[i - 1];
     }
 
     getSize() {
-        return this.v.length;
+        return this.vals.length;
     }
 
     ///SET///
-    set(x) {
+    set(i, x) {
         try {
-            this["set_" + a.constructor.name](x);
+            this.vals[i - 1] = x.copy();
         }
         catch (e) {
             throw new Error("Number type is not yet supported for setting in the Vector class. [" + x + "]");
         }
-    }
-
-    set_Real(x) {
-        this.v[i] = new Real(x.r);
-    }
-
-    set_Imaginary(x) {
-        this.v[i] = new Imaginary(x.i);
-    }
-
-    set_Complex(x) {
-        this.v[i] = new Complex(x.r, x.i);
     }
 
     ///Compilation///
@@ -642,11 +624,383 @@ class Vector{
 }
 
 class Matrix {
-    constructor() {
+    constructor(x, n, m, noCopy) {
+        if (x.constructor.name === "Number" || x.classfication === "scalar") { this.construct_fromScalar(x, n, m);}
+        else if (x.constructor.name === "Matrix") { this.construct_fromMatrix(x); }
+        else if (x.constructor.name === "Vector") { this.construct_fromVector(x); }
+        else if (x.constructor.name === "Array") { this.construct_fromArray(x, noCopy); }
+        else { throw new Error(`${x.constructor.name} is not a valid object type to construct a tensor.`); }
+    }
+
+    construct_fromScalar(s, n, m) {
+
+        this.classification = "matrix";
+        this.vals = [];
+        this.m = m;
+        this.n = n;
+
+        for (let i = 0; i < this.m; i++) {
+            this.vals[i] = [];
+            for (let j = 0; j < this.n; j++) {
+                if (s.constructor.name === "Number") {
+                    this.vals[i][j] = new Real(s);
+                }
+                else {
+                    this.vals[i][j] = s.copy();
+                }
+            }
+        }
+    }
+
+    construct_fromMatrix(matrix) {
+        let nm = JSON.parse(JSON.stringify(matrix));
+        for (const key in nm) {
+            this[key] = nm[key];
+        }
+    }
+
+    construct_fromVector(vector) {
+
+        if (vector.isColumn) {
+            this.construct_fromColumnVector(vector);
+        }
+        else {
+            this.construct_fromRowVector(vector);
+        }
 
     }
 
-    //start by compying almost all code from vector
+    construct_fromColumnVector(vector) {
+
+        this.classification = "matrix";
+        this.vals = [];
+        this.m = vector.getSize();
+        this.n = 1;
+
+        let nv = JSON.parse(JSON.stringify(v));
+        for (let i = 0; i < this.m; i++) {
+            this.vals[i] = [nv.get(i)];
+        }
+
+    }
+
+    construct_fromRowVector(vector) {
+
+        this.classification = "matrix";
+        this.vals = [];
+        this.m = 1;
+        this.n = vector.getSize();
+
+        let nv = JSON.parse(JSON.stringify(v));
+        for (let j = 0; j < this.n; j++) {
+            this.vals[0][j] = [nv.get(j)];
+        }
+
+    }
+
+    construct_fromArray(array, noCopy) {
+
+        validateArray(array);
+
+        this.classification = "matrix";
+        this.vals = [];
+        this.m = array.length;
+        this.n = array[0].length;
+
+        for (let i = 0; i < this.m; i++) {
+            this.vals[i] = [];
+            for (let j = 0; j < this.n; j++) {
+                if (s.constructor.name === "Number") {
+                    this.vals[i][j] = new Real(s);
+                }
+                else if(noCopy){
+                    this.vals[i][j] = s;
+                }
+                else{
+                    this.vals[i][j] = s.copy();
+                }
+            }
+        }
+
+        function assignmentLogic() {
+
+        }
+
+        function validateArray(a) {
+
+            if (a.length < 1) { throw new Error("must not pass in empty array to matrix constructor");}
+            if (a[0].length < 1) { throw new Error("must pass 2d array to matrix constructor"); }
+
+            let length = a[0].length;
+            for (let i = 0; i < a.length; i++) {
+                if (length !== a[i].length) { throw new Error("array argument must be rectangular"); }
+                for (let j = 0; j < a[i].length; j++) {
+                    if (a[i][j].constructor.name !== "Number" || a[i][j].classification !== "scalar") {
+                        throw new Error("all array values must be either of type Number or a Scalar");
+                    }
+                }
+            }
+        }
+    }
+
+    map_scalar(op, x) {
+        let result = [];
+        for (let i = 0; i < this.m; i++) {
+            result[i] = [];
+            for (let j = 0; j < this.n; j++) {
+                result[i][j] = this[i][j][op](x);
+            }
+        }
+
+        return new Matrix(result, null, null, true);
+    }
+
+    map_vector(op, x) {
+        if (x.isColumn) {
+            this.map_columnVector(op, x);
+        }
+        else {
+            this.map_rowVector(op, x);
+        }
+    }
+
+    map_columnVector(op, x) {
+        let result = [];
+        for (let i = 0; i < this.m; i++) {
+            result[i] = [];
+            for (let j = 0; j < this.n; j++) {
+                result[i][j] = this[i][j][op](x.getRef(i + 1));
+            }
+        }
+
+        return new Matrix(result, null, null, true);
+    }
+
+    map_rowVector(op, x) {
+        let result = [];
+        for (let i = 0; i < this.m; i++) {
+            result[i] = [];
+            for (let j = 0; j < this.n; j++) {
+                result[i][j] = this[i][j][op](x.getRef(j + 1));
+            }
+        }
+
+        return new Matrix(result, null, null, true);
+    }
+
+
+    map_matrix(op, x) {
+        let result = [];
+        for (let i = 0; i < this.m; i++) {
+            result[i] = [];
+            for (let j = 0; j < this.n; j++) {
+                result[i][j] = this[i][j][op](x.getRef(i+1, j+1));
+            }
+        }
+
+        return new Matrix(result, null, null, true);
+    }
+
+    ///ADD///
+
+    add(x) {
+
+        try {
+            return this["map_" + x.classification]("add", x);
+        }
+        catch (e) {
+            throw new Error("Number type is not yet supported for addition by the Matrix class. [" + x + "]");
+        }
+    }
+
+
+    ///SUBTRACT///
+    subtract(x) {
+        try {
+            return this["map_" + x.classification]("subtract", x);
+        }
+        catch (e) {
+            throw new Error("Number type is not yet supported for subtraction by the Matrix class. [" + x + "]");
+        }
+    }
+
+    ///MULTIPLY
+
+    multiply(x) {
+        try {
+            return this["map_" + x.classification]("multiply", x);
+        }
+        catch (e) {
+            throw new Error("Number type is not yet supported for multiplication by the Matrix class. [" + x + "]");
+        }
+    }
+
+    ///DIVIDE///
+
+    divide(x) {
+        try {
+            return this["map_" + x.classification]("divide", x);
+        }
+        catch (e) {
+            throw new Error("Number type is not yet supported for division by the Matrix class. [" + x + "]");
+        }
+    }
+
+    ///MATRIX MULTIPLICATION///
+
+    matmul(x) {
+        try {
+            return this["matmul_" + x.classfication](x);
+        }
+        catch (e) {
+            throw new Error("Number type is not yet supported for matrix multiplication by the Matrix class. [" + x + "]");
+        }
+    }
+
+    matmul_vector(x) {
+        throw new Error("not implemented");
+    }
+
+    matmul_matrix(x) {
+        throw new Error("not implemented");
+    }
+
+    ///GETS///
+
+    get(i, j) {
+        return this.vals[i - 1][j - 1].copy();
+    }
+
+    getRef(i, j) {
+        return this.vals[i - 1][j - 1];
+    }
+
+    getSize() {
+        return [this.m, this.n];
+    }
+
+    ///SET///
+    set(i, j, x) {
+        try {
+            this.vals[i - 1][j - 1] = x.copy();
+        }
+        catch (e) {
+            throw new Error("Number type is not yet supported for setting in the Matrix class. [" + x + "]");
+        }
+    }
+}
+
+class Tensor {
+    constructor(t) {
+
+        if (t.constructor.name === "Tensor") { this.construct_fromTensor(t); }
+        else if (t.constructor.name === "Vector") { this.construct_fromVector(t); }
+        else if (t.constructor.name === "Array") {this.construct_fromArray(t); }
+        else { throw new Error(`${m.constructor.name} is not a valid object type to construct a tensor.`); }
+
+    }
+
+    construct_fromTensor(tensor) {
+        let nt = JSON.parse(JSON.stringify(tensor));
+        for (const key in nt) {
+            this[key] = nt[key];
+        }
+    }
+
+    construct_fromVector(vector) {
+
+        this.classfication = "tensor";
+        this.tierClass = "scalar";
+
+        this.t = [];
+        this.size = [vector.getSize()];
+        this.dimension = 1;
+
+        if (!vector.isColumn) { throw new Error("Row vectors construction of a matrix is not implemented yet"); }
+
+        for (const v of vector.v) {
+            this.push_scalar(v);
+        }
+    }
+
+    construct_fromArray(array) {
+
+        this.classification = "tensor";
+        this.tierClass = getTierClass(array[0]);
+        this.validateInput(array);
+
+        this.t = [];
+        this.size = [array.length];
+        this.dimension = 1;
+
+        for (const a of array) {
+            this["push_" + this.tierClass](a);
+        }
+
+    }
+
+    validateInput(a) {
+
+        if (typeof (a.length) === "undefined") { throw new Error("Input for matrix must be an array"); }
+        if (a.length === 0) { throw new Error("Cannot construct an empty matrix."); }
+
+        for (const a of array) {
+            if (a.constructor.name !== this.tierClass && a.classfication !== this.tierClass) {
+                throw new Error("All values in an array must have the same classification to insert to a Matrix.")
+            }
+        }
+    }
+
+    ///PUSH///
+    push(x) {
+        try {
+            this["push_" + x.constructor.name](x);
+        }
+        catch (e) {
+            throw new Error(`The tier class <${this.tierClass}> is not supported by matrix.`);
+        }
+
+    }
+
+    push_scalar(s) {
+        this["push_" + s.constructor.name](s);
+    }
+
+    push_Number(n) {
+        this.t.push(new Real(n));
+    }
+
+    push_Real(r) {
+        this.t.push(new Real(r.r));
+    }
+
+    push_Imaginary(i) {
+        this.t.push(new Imaginary(i.i));
+    }
+
+    push_Complex(c) {
+        this.t.push(new Complex(c.r, c.i));
+    }
+
+    push_Array(array) {
+        this.size.push(array.length);
+        this.dimension++;
+        this.t.push(new Tensor(a));
+    }
+
+    push_vector(v) {
+        this.size.push(v.getSize());
+        this.dimension++;
+        this.t.push(new Tensor(v));
+    }
+
+}
+
+///Private Functions for Matrix///
+function getTierClass(a) {
+    let tierClass = a.classification;
+    if (typeof (tierClass) === "undefined") { tierClass = a.constructor.name; }
+    return tierClass;
 }
 
 
@@ -696,6 +1050,16 @@ module.exports = {
     ComplexPolar: ComplexPolar,
     Imaginary: Imaginary,
     Real: Real,
-    Vector: Vector
+    Vector: Vector,
+    Matrix: Matrix,
+    Tensor:Tensor
 };
 
+//export {
+//    Boolean,
+//    Real,
+//    Imaginary,
+//    Complex,
+//    ComplexPolar,
+//    Vector
+//}

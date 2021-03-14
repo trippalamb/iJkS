@@ -40,11 +40,13 @@
     <Content Include="src.test\exercises\Chapter2.test.js">
       <TestFramework>Jest</TestFramework>
     </Content>
+    <Content Include="src.test\type\Types.test.js" />
     <Content Include="src\app\Types.js" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="src.test\" />
     <Folder Include="src.test\exercises\" />
+    <Folder Include="src.test\type\" />
     <Folder Include="src\" />
     <Folder Include="src\app\" />
   </ItemGroup>
