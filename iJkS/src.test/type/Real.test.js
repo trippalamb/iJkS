@@ -1,4 +1,4 @@
-const { Complex, ComplexPolar, Real, Imaginary, Vector } = require("../../src/app/Types.js");
+const {Real, Imaginary, Complex, Vector, Matrix } = require("../../src/app/Types.js");
 
 test("Real | constructor", () =>{
     var a = new Real(2.5);
@@ -69,6 +69,25 @@ test("Real | add() : tests '2 + |3.0, 4.5i, {-3.0, -4.5i}>'", () => {
 
 });
 
+test("Real | add() : tests '2 + [[3.0, 4.5i], [2.0, {-3.0, -4.5i}]]'", () => {
+
+    var a = new Real(2.0);
+    var m = new Matrix([
+        [new Real(3.0), new Imaginary(4.5),],
+        [new Real(2.0), new Complex(-3.0, -4.5)]
+    ]);
+
+    var c = a.add(m);
+
+    var correct = new Matrix([
+        [new Real(5.0), new Complex(2.0, 4.5),],
+        [new Real(4.0), new Complex(-1.0, -4.5)]
+    ]);
+
+    expect(c).toEqual(correct);
+
+});
+
 test("Real | subtract() : tests '2 - 4.5'", () => {
 
     var a = new Real(2.0);
@@ -126,6 +145,25 @@ test("Real | subtract() : tests '2 - |3.0, 4.5i, {-3.0, -4.5i}>'", () => {
 
 });
 
+test("Real | subtract() : tests '2 - [[3.0, 4.5i], [2.0, {-3.0, -4.5i}]]'", () => {
+
+    var a = new Real(2.0);
+    var m = new Matrix([
+        [new Real(3.0), new Imaginary(4.5),],
+        [new Real(2.0), new Complex(-3.0, -4.5)]
+    ]);
+
+    var c = a.subtract(m);
+
+    var correct = new Matrix([
+        [new Real(-1.0), new Complex(2.0, -4.5),],
+        [new Real(0.0), new Complex(5.0, 4.5)]
+    ]);
+
+    expect(c).toEqual(correct);
+
+});
+
 test("Real | multiply() : tests '2 * 4.5'", () => {
 
     var a = new Real(2.0);
@@ -177,6 +215,25 @@ test("Real | multiply() : tests '2 * |3.0, 4.5i, {-3.0, -4.5i}>'", () => {
         new Real(6.0),
         new Imaginary(9.0),
         new Complex(-6.0, -9.0)
+    ]);
+
+    expect(c).toEqual(correct);
+
+});
+
+test("Real | muiltiply() : tests '2 * [[3.0, 4.5i], [2.0, {-3.0, -4.5i}]]'", () => {
+
+    var a = new Real(2.0);
+    var m = new Matrix([
+        [new Real(3.0), new Imaginary(4.5),],
+        [new Real(2.0), new Complex(-3.0, -4.5)]
+    ]);
+
+    var c = a.multiply(m);
+
+    var correct = new Matrix([
+        [new Real(6.0), new Imaginary(9.0),],
+        [new Real(4.0), new Complex(-6.0, -9.0)]
     ]);
 
     expect(c).toEqual(correct);
@@ -241,6 +298,25 @@ test("Real | divide() : tests '2 / |3.0, 4.5i, {-3.0, -4.5i}>'", () => {
     expect(c.get(2).get()).toBeCloseTo(correct.get(2).get(), 12);
     expect(c.get(3).get("r")).toBeCloseTo(correct.get(3).get("r"), 12);
     expect(c.get(3).get("i")).toBeCloseTo(correct.get(3).get("i"), 12);
+
+});
+
+test("Real | divide() : tests '2 / [[3.0, 4.5i], [2.0, {-3.0, -4.5i}]]'", () => {
+
+    var a = new Real(2.0);
+    var m = new Matrix([
+        [new Real(3.0), new Imaginary(4.5),],
+        [new Real(2.0), new Complex(-3.0, -4.5)]
+    ]);
+
+    var c = a.divide(m);
+
+    var correct = new Matrix([
+        [new Real(2.0/3.0), new Imaginary(4.0/9.0),],
+        [new Real(1.0), new Complex(-0.205128205128205, 0.307692307692307)]
+    ]);
+
+    expect(c).toEqual(correct);
 
 });
 

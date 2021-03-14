@@ -46,8 +46,8 @@
     map_vector(op, x) {
         var results = [];
         var size = x.getSize();
-        for (let i = 1; i <= size; i++) {
-            results[i] = this.map_scalar(op, x.getRef(i));
+        for (let i = 0; i < size; i++) {
+            results[i] = this.map_scalar(op, x.getRef(i+1));
         }
         return new Vector(results, x.isColumn);
     }
@@ -55,10 +55,10 @@
     map_matrix(op, x) {
         var results = [];
         var size = x.getSize();
-        for (let i = 1; i <= size[0]; i++) {
+        for (let i = 0; i < size[0]; i++) {
             results[i] = [];
-            for (let j = 1; j <= size[1]; j++) {
-                results[i][j] = this.map_scalar(op, x.getRef(i, j));
+            for (let j = 0; j < size[1]; j++) {
+                results[i][j] = this.map_scalar(op, x.getRef(i+1, j+1));
             }
         }
         return new Matrix(results, null, true);
@@ -731,6 +731,7 @@ class Matrix {
         for (let i = 0; i < this.m; i++) {
             this.vals[i] = [];
             for (let j = 0; j < this.n; j++) {
+                let s = array[i][j];
                 if (s.constructor.name === "Number") {
                     this.vals[i][j] = new Real(s);
                 }
@@ -756,7 +757,7 @@ class Matrix {
             for (let i = 0; i < a.length; i++) {
                 if (length !== a[i].length) { throw new Error("array argument must be rectangular"); }
                 for (let j = 0; j < a[i].length; j++) {
-                    if (a[i][j].constructor.name !== "Number" || a[i][j].classification !== "scalar") {
+                    if (!(a[i][j].constructor.name === "Number" || a[i][j].classification === "scalar")) {
                         throw new Error("all array values must be either of type Number or a Scalar");
                     }
                 }
