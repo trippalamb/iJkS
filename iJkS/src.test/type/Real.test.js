@@ -316,7 +316,11 @@ test("Real | divide() : tests '2 / [[3.0, 4.5i], [2.0, {-3.0, -4.5i}]]'", () => 
         [new Real(1.0), new Complex(-0.205128205128205, 0.307692307692307)]
     ]);
 
-    expect(c).toEqual(correct);
+    expect(c.get(1, 1).get()).toBeCloseTo(correct.get(1, 1).get(), 12);
+    expect(c.get(1, 2).get()).toBeCloseTo(correct.get(1, 2).get(), 12);
+    expect(c.get(2, 1).get()).toBeCloseTo(correct.get(2, 1).get(), 12);
+    expect(c.get(2, 2).get("r")).toBeCloseTo(correct.get(2, 2).get("r"), 12);
+    expect(c.get(2, 2).get("i")).toBeCloseTo(correct.get(2, 2).get("i"), 12);
 
 });
 
