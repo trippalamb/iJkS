@@ -609,6 +609,10 @@ class Vector{
             throw new Error("Number type is not yet supported for division by the Vector class. [" + x + "]");
         }
     }
+
+    transpose() {
+        return new Vector(this.vals, !this.isColumn);
+    }
     
     inverse() {
         return this.multiply(new Real(-1));
@@ -866,6 +870,20 @@ class Matrix {
         catch (e) {
             throw new Error("Number type is not yet supported for division by the Matrix class. [" + x + "]");
         }
+    }
+
+    transpose() {
+
+        let results = [];
+
+        for (let j = 0; j < this.n; j++) {
+            results[j] = [];
+            for (let i = 0; i < this.m; i++) {
+                results[j][i] = this.get(i + 1, j + 1);
+            }
+        }
+
+        return Matrix(results);
     }
 
     ///MATRIX MULTIPLICATION///
